@@ -3,8 +3,7 @@ import { LoggerService } from "./logger.service";
 
 describe("CalculatorService", () => {
   it("should add two numbers", () => {
-    const logger = new LoggerService();
-    spyOn(logger, "log");
+    const logger = jasmine.createSpyObj("LoggerService", ["log"]);
     const calculator = new CalculatorService(logger);
     const result = calculator.add(5, 5);
     expect(result).toBe(10);
