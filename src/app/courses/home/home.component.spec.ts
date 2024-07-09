@@ -1,10 +1,10 @@
 import {
-  async,
   ComponentFixture,
   fakeAsync,
   flush,
   flushMicrotasks,
   TestBed,
+  tick,
 } from "@angular/core/testing";
 import { CoursesModule } from "../courses.module";
 import { DebugElement } from "@angular/core";
@@ -27,8 +27,17 @@ describe("HomeComponent", () => {
   let fixture: ComponentFixture<HomeComponent>;
   let component: HomeComponent;
   let el: DebugElement;
+  let courseService: any;
 
-  beforeEach(async(() => {
+  const beginnerCourse = setupCourses().filter(
+    (course) => course.category == "BEGINNER"
+  );
+
+  const advancedCourses = setupCourses().filter(
+    (course) => course.category == "ADVANCED"
+  );
+
+  beforeEach(fakeAsync(() => {
     const courseServiceSpy = jasmine.createSpyObj("CoursesService", [
       "findAllCourses",
     ]);
@@ -42,6 +51,7 @@ describe("HomeComponent", () => {
         fixture = TestBed.createComponent(HomeComponent);
         component = fixture.componentInstance;
         el = fixture.debugElement;
+        courseService = TestBed.get(CoursesService);
       });
   }));
 
@@ -50,18 +60,58 @@ describe("HomeComponent", () => {
   });
 
   it("should display only beginner courses", () => {
-    pending();
+    courseService.findAllCourses.and.returnValue(of(beginnerCourse));
+    fixture.detectChanges();
+
+    const tabs = el.queryAll(By.css(".mdc-tab"));
+
+    expect(tabs.length).toBe(1, "Unexpected number of tabs found");
   });
 
   it("should display only advanced courses", () => {
-    pending();
+    courseService.findAllCourses.and.returnValue(of(advancedCourses));
+
+    fixture.detectChanges();
+
+    const tabs = el.queryAll(By.css(".mdc-tab"));
+
+    expect(tabs.length).toBe(1, "Unexpected number of tabs found");
   });
 
   it("should display both tabs", () => {
-    pending();
+    courseService.findAllCourses.and.returnValue(of(setupCourses()));
+
+    fixture.detectChanges();
+
+    const tabs = el.queryAll(By.css(".mdc-tab"));
+
+    expect(tabs.length).toBe(2, "should be 2 number of tabs found");
   });
 
   it("should display advanced courses when tab clicked", () => {
-    pending();
+    courseService.findAllCourses.and.returnValue(of(setupCourses()));
+
+    fixture.detectChanges();
+
+    const tabs = el.queryAll(By.css(".mdc-tab"));
+
+    click(tabs[1]);
+
+    fixture.detectChanges();
+
+    setTimeout(() => {
+      flushMicrotasks();
+
+      const cardTitles = el.queryAll(By.css(".mat-mdc-card-title"));
+
+      expect(cardTitles.length).toBeGreaterThan(
+        0,
+        "Could not find the card title"
+      );
+
+      expect(cardTitles[0].nativeElement.textContent).toContain(
+        "Angular Security Course"
+      );
+    }, 500);
   });
 });
